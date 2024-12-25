@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
 @dataclass
-class PagePropertyResponse():
-    pass
-
-@dataclass
-class GetSearchResultsResponse():
-    pass
+class SearchResultElement():
+    title: str
+    annotation: str
+    url: str
+    ident: str

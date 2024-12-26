@@ -2,7 +2,7 @@
 from llm.cohere_requests import CohereRequests
 import logging
 
-logger = logging.getLogger("CohereRequests")
+logger = logging.getLogger("CohereService")
 
 
 class CohereService():
@@ -19,7 +19,7 @@ class CohereService():
             if not isinstance(wiki_text, str):
                 raise TypeError("Wiki text must be of type string")
 
-            request_text = "Summarize this text, write not more than 700 symbols:"
+            request_text = "Summarize this text and highlight key moments:"
 
             summarized_text = await self.cohere_requests.make_request(request_text, wiki_text)
 

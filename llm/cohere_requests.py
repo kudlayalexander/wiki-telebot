@@ -9,9 +9,9 @@ class CohereRequests():
         self.api_key = api_key
 
     async def make_request(self, request_text: str, wiki_text: str) -> str:
-        logger.info("Making request to GPT with this text:")
+        logger.info("Making request to GPT with text")
         message = request_text + wiki_text
-        logger.debug(message)
+        # logger.debug(message)
 
         co = cohere.AsyncClientV2(api_key=self.api_key)
 

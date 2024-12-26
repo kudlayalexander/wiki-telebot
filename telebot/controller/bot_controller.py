@@ -21,6 +21,7 @@ class BotController:
         self.inline_button_service: ButtonService = inline_button_service
 
     async def handle_search_start_message(self, message: Message, state: FSMContext) -> None:
+        await state.clear()
         async with ChatActionSender.typing(bot=self.bot, chat_id=message.chat.id):
             await asyncio.sleep(1)
             await message.answer("Введите запрос по которому хотите найти статьи:")
@@ -63,7 +64,6 @@ class BotController:
 
             await self.set_markup_buttons_callback_ident(callback.message.reply_markup.inline_keyboard,
                                                          ButtonService.get_search_result_button_ident())
-            await state.clear()
             await callback.message.answer(summarized_text)
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):

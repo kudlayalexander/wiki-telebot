@@ -1,4 +1,5 @@
 import asyncio
+from wiki.dto.wiki_search_dtos import SearchResultElement
 from typing import List
 
 from wiki.wiki_requests import WikiRequests
@@ -43,7 +44,7 @@ class WikiService():
             if not isinstance(page_ident, str):
                 raise TypeError("Page ident must be of type string")
 
-            page_text: SearchResponse = await self.wiki_requests.get_full_text_from_page(page_ident)
+            page_text: str = await self.wiki_requests.get_full_text_from_page(page_ident)
         
             return page_text
         except Exception as exc:

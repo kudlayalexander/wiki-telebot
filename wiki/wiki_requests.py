@@ -46,7 +46,8 @@ class WikiRequests():
             "action": "parse",
             "page": page_ident,
             "format": "json",
-            "prop": "text"
+            "prop": "text",
+            "redirects": 1
         }
 
         async with aiohttp.ClientSession() as session:

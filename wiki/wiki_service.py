@@ -45,8 +45,8 @@ class WikiService():
 
             page_text: str = await self.wiki_requests.get_full_text_from_page(page_ident)
 
-            if len(page_text) > 325000:
-                page_text = page_text[:325000]
+            if len(page_text) > 300000:
+                page_text = page_text[:300000]
 
             return page_text
         except Exception as exc:

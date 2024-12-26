@@ -64,6 +64,8 @@ class BotController:
                 return
 
             await callback.message.answer(summarized_text)
+            await self.set_markup_buttons_callback_ident(callback.message.reply_markup.inline_keyboard,
+                                                    ButtonService.get_search_result_button_ident())
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
         await callback.answer()

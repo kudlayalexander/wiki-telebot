@@ -1,6 +1,9 @@
-from wiki.dto.wiki_responses_dto import SearchResultElement
-from typing import List
+from typing import List, Tuple
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from wiki.dto.wiki_search_dtos import SearchResultElement
+
 
 class ButtonService:
     def __init__(self):
@@ -17,12 +20,16 @@ class ButtonService:
             '9': '9️⃣'
         }
 
-    def build_inline_buttons_and_response_by_search_results(self, search_results: List[SearchResultElement]) -> (str, InlineKeyboardMarkup):
-        keyboard_markup: InlineKeyboardMarkup = self.__build_inline_buttons_by_search_results(search_results)
+    def build_inline_buttons_and_response_by_search_results(
+        self,
+        search_results: List[SearchResultElement]
+    ) -> Tuple[str, InlineKeyboardMarkup]:
+
+        keyboard_markup: InlineKeyboardMarkup = self.__build_inline_buttons_by_search_results(
+            search_results)
         response: str = self.__build_response_by_search_results(search_results)
 
         return response, keyboard_markup
-
 
     def __build_inline_buttons_by_search_results(self, search_results: List[SearchResultElement]) -> InlineKeyboardMarkup:
         inline_keyboard: List[List[InlineKeyboardButton]] = []
@@ -32,7 +39,8 @@ class ButtonService:
             button: List[InlineKeyboardButton] = []
 
             text: str = self.__convert_to_emoji_number(counter)
-            callback_data = ButtonService.get_search_result_button_ident() + search_result.ident
+            callback_data = ButtonService.get_search_result_button_ident() + \
+                search_result.ident
 
             inline_button = InlineKeyboardButton(
                 text=text,
@@ -55,7 +63,8 @@ class ButtonService:
         for search_result in search_results:
             emoji = self.__convert_to_emoji_number(counter)
 
-            response = f"{emoji} {search_result.title}\n{search_result.annotation}\nСсылка: {search_result.url}"
+            response = f"{emoji} {search_result.title}\n{
+                search_result.annotation}\nСсылка: {search_result.url}"
 
             counter += 1
             responses.append(response)

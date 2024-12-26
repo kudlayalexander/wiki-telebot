@@ -8,13 +8,13 @@ class WikiResponseConverter():
     async def convert_search_response(search_response: SearchResponse) -> List[SearchResultElement]:
         if search_response is None:
             return []
-        
+
         search_results = []
         for i in range(len(search_response.titles)):
             search_results.append(
                 SearchResultElement(
                     title=search_response.titles[i],
-                    short_description=search_response.short_descriptions[i],
+                    annotation=search_response.annotations[i],
                     url=search_response.urls[i],
                     ident=search_response.titles[i].replace(" ", "_")
                 )

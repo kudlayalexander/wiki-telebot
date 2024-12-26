@@ -1,23 +1,24 @@
 import asyncio
-from http.client import responses
-
-from wiki.wiki_service import WikiService
-from llm.cohere_service import CohereService
-from aiogram.types import Message, CallbackQuery
-from aiogram.utils.chat_action import ChatActionSender
-from aiogram.fsm.context import FSMContext
-from aiogram import Bot
-from telebot.state.wiki_search_state import WikiSearchState
-from wiki.dto.wiki_responses_dto import SearchResultElement
 from typing import List
+
+from aiogram import Bot
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
+from aiogram.utils.chat_action import ChatActionSender
+
+from llm.cohere_service import CohereService
 from telebot.service.inline_button_service import ButtonService
+from telebot.state.wiki_search_state import WikiSearchState
+from wiki.dto.wiki_search_dtos import SearchResultElement
+from wiki.wiki_service import WikiService
+
 
 class BotController:
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        self.wiki_service = WikiService()
-        self.cohere_service = CohereService()
-        self.inline_button_service = ButtonService()
+    def __init__(self, bot: Bot, wiki_service: WikiService, cohere_service: CohereService, inline_button_service: ButtonService):
+        self.bot: Bot = bot
+        self.wiki_service: WikiService = wiki_service
+        self.cohere_service: CohereService = cohere_service
+        self.inline_button_service: ButtonService = inline_button_service
 
     async def handle_search_start_message(self, message: Message, state: FSMContext) -> None:
         async with ChatActionSender.typing(bot=self.bot, chat_id=message.chat.id):
@@ -39,7 +40,8 @@ class BotController:
                 await state.clear()
                 return
 
-            response, inline_markup = self.inline_button_service.build_inline_buttons_and_response_by_search_results(search_results=search_results)
+            response, inline_markup = self.inline_button_service.build_inline_buttons_and_response_by_search_results(
+                search_results=search_results)
 
             await message.answer(text=f"По вашему запросу найдено:\n{response}", reply_markup=inline_markup)
             await state.clear()
@@ -48,16 +50,28 @@ class BotController:
         await state.clear()
         await callback.answer()
 
-        page_ident: str = callback.data.replace(ButtonService.get_search_result_button_ident(), '')
+        page_ident: str = callback.data.replace(
+            ButtonService.get_search_result_button_ident(), '')
 
         async with ChatActionSender.typing(bot=self.bot, chat_id=callback.message.chat.id):
-            response: str = await self.wiki_service.get_text_from_page(page_ident=page_ident)
+            wiki_page_text: str = await self.wiki_service.get_text_from_page(page_ident=page_ident)
 
-            await callback.message.answer(response)
+            if wiki_page_text == "FAILED":
+                await callback.message.answer("Не удалось получить текст страницы")
+                await callback.message.delete()
+                return
+
+            summarized_text: str = await self.cohere_service.summarize_text(wiki_page_text)
+
+            if summarized_text == "FAILED":
+                await callback.message.answer("Не удалось суммировать текст")
+                await callback.message.delete()
+                return
+
+            await callback.message.answer(summarized_text)
             await callback.message.delete()
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         await callback.message.delete()
         await state.clear()
-

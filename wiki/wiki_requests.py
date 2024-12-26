@@ -100,7 +100,7 @@ class WikiRequests():
                 response_text = await response.text()
                 json_response = json.loads(response_text)
 
-                logger.debug(f"Body: {json_response}")
+                # logger.debug(f"Body: {json_response}")
 
         return SearchResponse(
             searched_string=json_response[0],

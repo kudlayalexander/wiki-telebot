@@ -45,9 +45,7 @@ class BotController:
             await state.clear()
 
     async def handle_search_find_page_message(self, callback: CallbackQuery, state: FSMContext) -> None:
-        await callback.answer()
         await self.block_markup_buttons(callback)
-        await state.clear()
 
         page_ident: str = callback.data.replace(
             ButtonService.get_search_result_button_ident(), '')
@@ -63,9 +61,10 @@ class BotController:
             if await self.check_is_failed_and_unblock_markup(callback, summarized_text, "Не удалось суммировать текст"):
                 return
 
-            await callback.message.answer(summarized_text)
             await self.set_markup_buttons_callback_ident(callback.message.reply_markup.inline_keyboard,
-                                                    ButtonService.get_search_result_button_ident())
+                                                         ButtonService.get_search_result_button_ident())
+            await state.clear()
+            await callback.message.answer(summarized_text)
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
         await callback.answer()

@@ -1,5 +1,5 @@
 import asyncio
-from dto.wiki_responses_dto import SearchResultElement
+from wiki.dto.wiki_responses_dto import SearchResultElement
 from typing import List
 
 class WikiService():

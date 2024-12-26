@@ -54,7 +54,7 @@ class ButtonService:
 
         inline_keyboard.append([self.__create_home_button()])
 
-        return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+        return InlineKeyboardMarkup(inline_keyboard=inline_keyboard, one_time_keyboard=True)
 
     def __build_response_by_search_results(self, search_results: List[SearchResultElement]) -> str:
         counter: int = 1
@@ -63,8 +63,16 @@ class ButtonService:
         for search_result in search_results:
             emoji = self.__convert_to_emoji_number(counter)
 
-            response = f"{emoji} {search_result.title}\n{
-                search_result.annotation}\nСсылка: {search_result.url}"
+            response: str = f"{emoji}"
+
+            if search_result.title is not None:
+                response += f"{search_result.title}\n"
+
+            if search_result.annotation is not None:
+                response += f"{search_result.annotation}\n"
+
+            if search_result.url is not None:
+                response += f"Ссылка: {search_result.url}\n"
 
             counter += 1
             responses.append(response)

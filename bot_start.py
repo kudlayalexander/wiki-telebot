@@ -9,7 +9,7 @@ from llm.cohere_requests import CohereRequests
 from llm.cohere_service import CohereService
 from telebot.controller.bot_controller import BotController
 from telebot.router.bot_router import BotRouter
-from telebot.service.inline_button_service import ButtonService
+from telebot.service.button_service import ButtonService
 from telebot.tg_bot import TgBot
 from wiki.wiki_requests import WikiRequests
 from wiki.wiki_service import WikiService

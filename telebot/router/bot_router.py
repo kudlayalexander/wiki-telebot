@@ -2,7 +2,7 @@ from aiogram import Dispatcher
 from aiogram.filters import Command
 
 from telebot.controller.bot_controller import BotController
-from telebot.service.inline_button_service import ButtonService
+from telebot.service.button_service import ButtonService
 from telebot.state.wiki_search_state import WikiSearchState
 
 

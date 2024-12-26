@@ -1,17 +1,17 @@
 import asyncio
+import copy
 from typing import List
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.chat_action import ChatActionSender
 
 from llm.cohere_service import CohereService
-from telebot.service.inline_button_service import ButtonService
+from telebot.service.button_service import ButtonService
 from telebot.state.wiki_search_state import WikiSearchState
 from wiki.dto.wiki_search_dtos import SearchResultElement
 from wiki.wiki_service import WikiService
-
 
 class BotController:
     def __init__(self, bot: Bot, wiki_service: WikiService, cohere_service: CohereService, inline_button_service: ButtonService):
@@ -32,8 +32,6 @@ class BotController:
 
         async with ChatActionSender.typing(bot=self.bot, chat_id=message.chat.id):
             search_results: List[SearchResultElement] = await self.wiki_service.get_pages_by_user_search(search_string=key_phrase)
-            # search_results: List[SearchResultElement] = [SearchResultElement(title='123', url='asdas', ident='first', annotation='asdas'),
-            #                                              SearchResultElement(title='456', url='dflskjgldfk', ident='second', annotation='dfklgbndlbdlfnkb'),]
 
             if len(search_results) == 0:
                 await message.answer("По вашему запросу ничего не найдено")
@@ -47,8 +45,9 @@ class BotController:
             await state.clear()
 
     async def handle_search_find_page_message(self, callback: CallbackQuery, state: FSMContext) -> None:
-        await state.clear()
         await callback.answer()
+        await self.block_markup_buttons(callback)
+        await state.clear()
 
         page_ident: str = callback.data.replace(
             ButtonService.get_search_result_button_ident(), '')
@@ -56,22 +55,45 @@ class BotController:
         async with ChatActionSender.typing(bot=self.bot, chat_id=callback.message.chat.id):
             wiki_page_text: str = await self.wiki_service.get_text_from_page(page_ident=page_ident)
 
-            if wiki_page_text == "FAILED":
-                await callback.message.answer("Не удалось получить текст страницы")
-                await callback.message.delete()
+            if await self.check_is_failed_and_unblock_markup(callback, wiki_page_text, "Не удалось получить текст страницы"):
                 return
 
             summarized_text: str = await self.cohere_service.summarize_text(wiki_page_text)
 
-            if summarized_text == "FAILED":
-                await callback.message.answer("Не удалось суммировать текст")
-                await callback.message.delete()
+            if await self.check_is_failed_and_unblock_markup(callback, summarized_text, "Не удалось суммировать текст"):
                 return
 
             await callback.message.answer(summarized_text)
-            await callback.message.delete()
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         await callback.message.delete()
         await state.clear()
+
+    async def block_markup_buttons(self, callback: CallbackQuery) -> None:
+        new_inline_keyboard: List[List[InlineKeyboardButton]] = callback.message.reply_markup.inline_keyboard
+        await self.set_markup_buttons_callback_ident(new_inline_keyboard, "mock")
+
+        await self.bot.edit_message_reply_markup(
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id,
+            reply_markup=callback.message.reply_markup
+        )
+
+    async def set_markup_buttons_callback_ident(self, inline_keyboard: list[list[InlineKeyboardButton]], ident: str) -> None:
+        for row in inline_keyboard:
+            for button in row:
+                if isinstance(button, InlineKeyboardButton):
+                    await self.set_button_callback_ident(button, ident)
+
+    async def set_button_callback_ident(self, button: InlineKeyboardButton, ident: str) -> None:
+        button.callback_data = ident
+
+    async def check_is_failed_and_unblock_markup(self, callback: CallbackQuery, text: str, msg: str) -> bool:
+        if text != "FAILED":
+            return False
+        await self.set_markup_buttons_callback_ident(callback.message.reply_markup.inline_keyboard,
+                                                     ButtonService.get_search_result_button_ident())
+        await callback.message.answer(msg)
+        return True
+

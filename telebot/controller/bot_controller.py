@@ -62,8 +62,8 @@ class BotController:
             if await self.check_is_failed_and_unblock_markup(callback, summarized_text, "Не удалось суммировать текст"):
                 return
 
-            await self.change_markup_buttons(callback, ButtonService.get_search_result_button_ident())
             await callback.message.answer(summarized_text)
+            await callback.message.delete()
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
         await callback.answer()

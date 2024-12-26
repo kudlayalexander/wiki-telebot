@@ -46,7 +46,7 @@ class BotController:
             await state.clear()
 
     async def handle_search_find_page_message(self, callback: CallbackQuery, state: FSMContext) -> None:
-        await self.block_markup_buttons(callback)
+        await self.change_markup_buttons(callback, "mock")
 
         page_ident: str = callback.data.replace(
             ButtonService.get_search_result_button_ident(), '')
@@ -62,8 +62,7 @@ class BotController:
             if await self.check_is_failed_and_unblock_markup(callback, summarized_text, "Не удалось суммировать текст"):
                 return
 
-            await self.set_markup_buttons_callback_ident(callback.message.reply_markup.inline_keyboard,
-                                                         ButtonService.get_search_result_button_ident())
+            await self.change_markup_buttons(callback, ButtonService.get_search_result_button_ident())
             await callback.message.answer(summarized_text)
 
     async def handle_home(self, callback: CallbackQuery, state: FSMContext):
@@ -71,9 +70,9 @@ class BotController:
         await callback.message.delete()
         await state.clear()
 
-    async def block_markup_buttons(self, callback: CallbackQuery) -> None:
+    async def change_markup_buttons(self, callback: CallbackQuery, ident: str) -> None:
         new_inline_keyboard: List[List[InlineKeyboardButton]] = callback.message.reply_markup.inline_keyboard
-        await self.set_markup_buttons_callback_ident(new_inline_keyboard, "mock")
+        await self.set_markup_buttons_callback_ident(new_inline_keyboard, ident)
 
         await self.bot.edit_message_reply_markup(
             chat_id=callback.message.chat.id,
